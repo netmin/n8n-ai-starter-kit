@@ -3,6 +3,8 @@ volumes:
   postgres_storage:
   ollama_storage:
   qdrant_storage:
+  caddy_data:
+  caddy_config:
 
 networks:
   demo:
@@ -28,8 +30,6 @@ x-ollama: &service-ollama
   container_name: ollama
   networks: ['demo']
   restart: unless-stopped
-  ports:
-    - 11434:11434
   volumes:
     - ollama_storage:/root/.ollama
 
@@ -47,6 +47,17 @@ x-init-ollama: &init-ollama
     - "sleep 3; ollama pull llama3.2"
 
 services:
+  caddy:
+    image: caddy:2.10.0-alpine
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ${CADDYFILE_PATH:-./Caddyfile}:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+
   postgres:
     image: postgres:16-alpine
     hostname: postgres
@@ -83,8 +94,6 @@ services:
     hostname: n8n
     container_name: n8n
     restart: unless-stopped
-    ports:
-      - 5678:5678
     volumes:
       - n8n_storage:/home/node/.n8n
       - ./n8n/demo-data:/demo-data
@@ -101,8 +110,6 @@ services:
     container_name: qdrant
     networks: ['demo']
     restart: unless-stopped
-    ports:
-      - 6333:6333
     volumes:
       - qdrant_storage:/qdrant/storage
 
@@ -146,4 +153,5 @@ services:
     <<: *init-ollama
     image: ollama/ollama:rocm
     depends_on:
-     - ollama-gpu-amd
+      - ollama-gpu-amd
+

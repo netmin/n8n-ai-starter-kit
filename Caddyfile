@@ -1,0 +1,6 @@
+n8n.vibes.it.com {
+    handle /* {
+        reverse_proxy n8n:5678
+    }
+}
+
