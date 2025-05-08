@@ -10,6 +10,12 @@ networks:
 
 x-n8n: &service-n8n
   image: n8nio/n8n:latest
+  labels:
+    - "traefik.enable=true"
+    - "traefik.http.routers.n8n.rule=Host(`n8n.vibes.it.com`)"
+    - "traefik.http.routers.n8n.entrypoints=https"
+    - "traefik.http.routers.n8n.tls=true"
+    - "traefik.http.routers.n8n.tls.certresolver=forge"
   networks: ['traefik_proxy']
   environment:
     - DB_TYPE=postgresdb
@@ -52,9 +58,9 @@ services:
     networks: ['traefik_proxy']
     restart: unless-stopped
     environment:
-      - POSTGRES_USER
-      - POSTGRES_PASSWORD
-      - POSTGRES_DB
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_storage:/var/lib/postgresql/data
     healthcheck:
@@ -79,12 +85,6 @@ services:
 
   n8n:
     <<: *service-n8n
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.n8n.rule=Host(`n8n.vibes.it.com`)"
-      - "traefik.http.routers.n8n.entrypoints=https"
-      - "traefik.http.routers.n8n.tls=true"
-      - "traefik.http.routers.n8n.tls.certresolver=forge"
     hostname: n8n
     container_name: n8n
     restart: unless-stopped
