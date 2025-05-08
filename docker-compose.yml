@@ -5,11 +5,12 @@ volumes:
   qdrant_storage:
 
 networks:
-  demo:
+  traefik_proxy:
+    external: true
 
 x-n8n: &service-n8n
   image: n8nio/n8n:latest
-  networks: ['demo']
+  networks: ['traefik_proxy']
   environment:
     - DB_TYPE=postgresdb
     - DB_POSTGRESDB_HOST=postgres
@@ -26,14 +27,14 @@ x-n8n: &service-n8n
 x-ollama: &service-ollama
   image: ollama/ollama:latest
   container_name: ollama
-  networks: ['demo']
+  networks: ['traefik_proxy']
   restart: unless-stopped
   volumes:
     - ollama_storage:/root/.ollama
 
 x-init-ollama: &init-ollama
   image: ollama/ollama:latest
-  networks: ['demo']
+  networks: ['traefik_proxy']
   container_name: ollama-pull-llama
   volumes:
     - ollama_storage:/root/.ollama
@@ -48,7 +49,7 @@ services:
   postgres:
     image: postgres:16-alpine
     hostname: postgres
-    networks: ['demo']
+    networks: ['traefik_proxy']
     restart: unless-stopped
     environment:
       - POSTGRES_USER
@@ -87,6 +88,7 @@ services:
     hostname: n8n
     container_name: n8n
     restart: unless-stopped
+    networks: ['traefik_proxy']
     volumes:
       - n8n_storage:/home/node/.n8n
       - ./n8n/demo-data:/demo-data
@@ -101,7 +103,7 @@ services:
     image: qdrant/qdrant
     hostname: qdrant
     container_name: qdrant
-    networks: ['demo']
+    networks: ['traefik_proxy']
     restart: unless-stopped
     volumes:
       - qdrant_storage:/qdrant/storage
